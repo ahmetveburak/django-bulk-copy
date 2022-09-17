@@ -19,7 +19,7 @@ class BulkCopy:
 
     @staticmethod
     def get_cursor(alias=DEFAULT_DB_ALIAS) -> CursorDebugWrapper:
-        connection = connections.databases[alias]
+        connection = connections[alias]
         connection.prepare_database()
         return connection.cursor()
 
