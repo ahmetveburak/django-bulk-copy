@@ -1,4 +1,5 @@
 import csv
+import json
 from io import StringIO
 from operator import itemgetter
 
@@ -57,6 +58,9 @@ class BulkCopy:
         auto_id_key = None
         auto_now_keys = {}
 
+        has_json_field = False
+        json_fields = []
+
         field_names = []
         for i, field in enumerate(fields):
             if isinstance(field, models.AutoField):
@@ -74,6 +78,9 @@ class BulkCopy:
                 # save auto_now_add and auto_now field indexes
                 # to set the now as default value
                 auto_now_keys[field.name] = now
+            elif isinstance(field, models.JSONField):
+                has_json_field = True
+                json_fields.append(field.name)
 
             if isinstance(field, models.ForeignKey):
                 field_names.append(f"{field.name}_id")
@@ -82,11 +89,19 @@ class BulkCopy:
 
         records = []
         for pk, record in enumerate(records_to_create, start=last_pk + 1):
-            model_fields_dict = record.__dict__
+            model_fields_dict = record.__dict__.copy()
             if is_auto_increment:
                 model_fields_dict[auto_id_key] = pk
             if auto_now_keys:
                 model_fields_dict.update(auto_now_keys)
+            if has_json_field:
+                model_fields_dict.update(
+                    {
+                        json_field: json.dumps(model_fields_dict[json_field])
+                        for json_field in json_fields
+                    }
+                )
+
             model_fields = itemgetter(*field_names)(model_fields_dict)
             records.append(model_fields)
         writer.writerows(records)
