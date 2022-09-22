@@ -10,9 +10,9 @@ from django.utils import timezone
 
 
 class BulkCopy:
-    def __init__(self, model, records_to_create):
-        self.model = model
-        self.meta = model._meta
+    def __init__(self, records_to_create):
+        self.model = records_to_create[0].__class__
+        self.meta = self.model._meta
         self.cursor = self.get_cursor()
         self.base_sql = self.generate_sql()
         self.auto_id_field = None
