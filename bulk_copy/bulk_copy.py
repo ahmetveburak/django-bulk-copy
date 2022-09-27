@@ -109,17 +109,13 @@ class BulkCopy:
         output.seek(0)
         return output
 
-    def bulk_copy(
-        self, records_to_create, is_auto_increment=True, update_sequence=False
-    ):
+    def bulk_copy(self, records_to_create, is_auto_increment=True):
         data = self.model_to_io(records_to_create, is_auto_increment)
         self.cursor.copy_expert(self.base_sql, data)
-        if update_sequence:
-            # TODO update sequence number after data inserted
-            ...
         table_name = self.meta.db_table
         operation = f"""
         SELECT 
-            setval(pg_get_serial_sequence('"{table_name}"','id'), 1, max(f"{self.auto_id_field}") IS NOT null)
+            setval(pg_get_serial_sequence('"{table_name}"','id'), max("{self.auto_id_field}"), max("{self.auto_id_field}") IS NOT null)
         FROM "{table_name}";
         """
+        self.cursor.execute(operation)
