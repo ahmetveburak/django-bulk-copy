@@ -2,6 +2,7 @@ import csv
 import json
 from io import StringIO
 from operator import itemgetter
+from typing import List, Sequence, TypeVar
 
 from django.db import connections, models
 from django.db.backends.postgresql.base import CursorDebugWrapper
@@ -10,13 +11,23 @@ from django.utils import timezone
 
 
 class BulkCopy:
-    def __init__(self, records_to_create):
-        self.model = records_to_create[0].__class__
+    def __init__(self, records_to_create: Sequence[models.Model]):
+        self.model = self.get_model_class(records_to_create)
         self.meta = self.model._meta
         self.cursor = self.get_cursor()
         self.base_sql = self.generate_sql()
         self.auto_id_field = None
         self.bulk_copy(records_to_create)
+
+    def get_model_class(self, records_to_create):
+        if not records_to_create:
+            raise ValueError(
+                "At least one model instance is required to create data."
+            )
+        if not hasattr(records_to_create, "__getitem__"):
+            raise TypeError("Objects must be subscriptable")
+
+        return records_to_create[0].__class__
 
     @staticmethod
     def get_cursor(alias=DEFAULT_DB_ALIAS) -> CursorDebugWrapper:
