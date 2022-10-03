@@ -1,6 +1,6 @@
 [project]
 name = "django-bulk-copy"
-version = "0.1.1"
+version = "0.1.3"
 authors = [
   { name="Ahmet Burak Ozyurt", email="ahmetbozyurtt@gmail.com" },
 ]
