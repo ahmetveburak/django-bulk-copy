@@ -1,0 +1,12 @@
+version: "3.5"
+services:
+  db:
+    image: postgres
+    container_name: bulk_copy
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+    ports:
+      - '5432:5432'
