@@ -37,5 +37,14 @@ BulkCopy(objects)
 
 BulkCopy only uses the initial time of the transaction if your model has a date/datetime field with `auto_now=True`.
 
+### Benchmark
+
+| Object Count | `bulk_create` | `BulkCopy` |
+| ------------ | ------------- | ---------- |
+| 1.000        | 0.06          | 0.05       |
+| 10.000       | 0.34          | 0.08       |
+| 100.000      | 3.96          | 0.80       |
+| 1.000.000    | 38.96         | 7.57       |
+
 ##### Additional
 If you need to create your models from a csv file, [django-postgres-copy](https://palewi.re/docs/django-postgres-copy/) could be a better alternative.
