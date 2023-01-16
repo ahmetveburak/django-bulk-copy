@@ -52,5 +52,5 @@ repos:
     -   id: autoflake
 
 ci:
-    autofix_commit_msg: fix(pre-commit): 🎨 Auto format from pre-commit.com hooks
+    autofix_commit_msg: fix(pre-commit):🎨 Auto format from pre-commit.com hooks
     autoupdate_commit_msg: dev(pre-commit):⬆ pre-commit autoupdate

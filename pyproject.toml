@@ -54,6 +54,7 @@ addopts = "--isort"
 [tool.isort]
 line_length = 79
 profile = "black"
+skip = [".gitignore", ".dockerignore","bulk_copy/__init__.py"]
 
 [tool.bandit]
 target = ["tests", "bulk_copy"]

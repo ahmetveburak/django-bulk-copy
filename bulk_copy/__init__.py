@@ -1,1 +1,1 @@
-from .bulk_copy import BulkCopy
+from .bulk_copy import BulkCopy  # noqa
