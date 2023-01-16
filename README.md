@@ -22,12 +22,15 @@
    <img alt="bandit" src="https://img.shields.io/badge/security-bandit-yellow"/>
 </p>
 
-Create your mass data in a faster way with the `COPY` command.
-> Currently it supports only the Postgresql database.
+**Create your mass data in a faster way with the** `COPY` **command**.
+
+**⚠️ Currently it supports only the Postgresql database. ⚠️**
 
 ### Install 🛠️
 
-`pip install django-bulk-copy`
+```
+pip install django-bulk-copy
+```
 
 ### Usage 🚀
 
