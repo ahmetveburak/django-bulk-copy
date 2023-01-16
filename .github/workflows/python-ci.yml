@@ -47,7 +47,12 @@ jobs:
              source venv/bin/activate
              poetry install --with test
 
+      - name: Migrations 
+        run: |
+             source venv/bin/activate
+             python manage.py migrate
+
       - name: Check the quality of the code
         run: |
              source venv/bin/activate
-             pytest
+             tox
