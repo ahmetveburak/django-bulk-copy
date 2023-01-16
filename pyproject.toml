@@ -48,9 +48,6 @@ pre-commit = "^2.21.0"
 pyupgrade = "^3.3.1"
 ruff = "^0.0.205"
 
-[tool.pytest.ini_options]
-addopts = "--isort"
-
 [tool.isort]
 line_length = 79
 profile = "black"
@@ -64,7 +61,7 @@ tests = ["B201", "B301"]
 optional = true
 
 [tool.poetry.group.test.dependencies]
-pytest = "^6.0.0"
+pytest = "^7.2.1"
 
 [tool.poetry.group.docs]
 optional = true

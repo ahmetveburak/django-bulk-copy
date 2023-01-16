@@ -45,7 +45,7 @@ jobs:
       - name: Install the packages
         run: |
              source venv/bin/activate
-             poetry install
+             poetry install --with test
 
       - name: Check the quality of the code
         run: |
