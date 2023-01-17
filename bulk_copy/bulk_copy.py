@@ -124,7 +124,7 @@ class BulkCopy:
         table_name = self.meta.db_table
         operation = f"""
         SELECT
-            setval(pg_get_serial_sequence('"{table_name}"','id'), \
+            setval(pg_get_serial_sequence('"{table_name}"','id'),
                 max("{self.auto_id_field}"), max("{self.auto_id_field}") IS NOT null)
         FROM "{table_name}";
         """
