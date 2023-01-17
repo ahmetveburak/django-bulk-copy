@@ -2,10 +2,10 @@ import csv
 import json
 from io import StringIO
 from operator import itemgetter
-from typing import List, Sequence, TypeVar
+from typing import Sequence
 
 from django.db import connections, models
-from django.db.backends.postgresql.base import CursorDebugWrapper
+from django.db.backends.utils import CursorWrapper
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils import timezone
 
@@ -21,16 +21,14 @@ class BulkCopy:
 
     def get_model_class(self, records_to_create):
         if not records_to_create:
-            raise ValueError(
-                "At least one model instance is required to create data."
-            )
+            raise ValueError("At least one model instance is required to create data.")
         if not hasattr(records_to_create, "__getitem__"):
             raise TypeError("Objects must be subscriptable")
 
         return records_to_create[0].__class__
 
     @staticmethod
-    def get_cursor(alias=DEFAULT_DB_ALIAS) -> CursorDebugWrapper:
+    def get_cursor(alias=DEFAULT_DB_ALIAS) -> CursorWrapper:
         connection = connections[alias]
         connection.prepare_database()
         return connection.cursor()
@@ -46,7 +44,7 @@ class BulkCopy:
 
         sql = f"""
         COPY "{table_name}" ({field_names})
-        FROM STDIN 
+        FROM STDIN
         WITH (
             FORMAT CSV,
             DELIMITER '{delimiter}',
@@ -125,8 +123,9 @@ class BulkCopy:
         self.cursor.copy_expert(self.base_sql, data)
         table_name = self.meta.db_table
         operation = f"""
-        SELECT 
-            setval(pg_get_serial_sequence('"{table_name}"','id'), max("{self.auto_id_field}"), max("{self.auto_id_field}") IS NOT null)
+        SELECT
+            setval(pg_get_serial_sequence('"{table_name}"','id'),
+                max("{self.auto_id_field}"), max("{self.auto_id_field}") IS NOT null)
         FROM "{table_name}";
         """
         self.cursor.execute(operation)

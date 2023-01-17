@@ -1,7 +1,7 @@
-from bulk_copy import BulkCopy
 from django.test import TestCase
 from django.utils import timezone
 
+from bulk_copy import BulkCopy
 from tests.bulk_test.models import TestModel
 
 
