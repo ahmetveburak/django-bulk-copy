@@ -2,7 +2,7 @@ import csv
 import json
 from io import StringIO
 from operator import itemgetter
-from typing import Sequence
+from typing import Sequence, Type
 
 from django.db import connections, models
 from django.db.backends.utils import CursorWrapper
@@ -19,21 +19,30 @@ class BulkCopy:
         self.auto_id_field = None
         self.bulk_copy(records_to_create)
 
-    def get_model_class(self, records_to_create):
+    @staticmethod
+    def get_model_class(
+        records_to_create: Sequence[models.Model],
+    ) -> Type[models.Model]:
         if not records_to_create:
-            raise ValueError("At least one model instance is required to create data.")
+            raise ValueError(
+                "At least one model instance is required to create data."
+            )
         if not hasattr(records_to_create, "__getitem__"):
-            raise TypeError("Objects must be subscriptable")
+            raise TypeError("Objects must be subscriptable.")
 
         return records_to_create[0].__class__
 
     @staticmethod
-    def get_cursor(alias=DEFAULT_DB_ALIAS) -> CursorWrapper:
+    def get_cursor(alias: str = DEFAULT_DB_ALIAS) -> CursorWrapper:
         connection = connections[alias]
         connection.prepare_database()
         return connection.cursor()
 
-    def generate_sql(self, delimiter=",", null=""):
+    def generate_sql(self, delimiter: str = ",", null: str = "") -> str:
+        """
+        Prepare the COPY FROM query for the DB
+        https://www.postgresql.org/docs/current/sql-copy.html
+        """
         table_name = self.meta.db_table
         field_names = ",".join(
             f'"{field.name}_id"'
@@ -53,7 +62,11 @@ class BulkCopy:
         """
         return sql
 
-    def model_to_io(self, records_to_create, is_auto_increment=True):
+    def model_to_io(
+        self,
+        records_to_create: Sequence[models.Model],
+        is_auto_increment: bool = True,
+    ) -> StringIO:
         output = StringIO()
         writer = csv.writer(
             output,
@@ -113,12 +126,16 @@ class BulkCopy:
 
             model_fields = itemgetter(*field_names)(model_fields_dict)
             records.append(model_fields)
-        writer.writerows(records)
 
+        writer.writerows(records)
         output.seek(0)
         return output
 
-    def bulk_copy(self, records_to_create, is_auto_increment=True):
+    def bulk_copy(
+        self,
+        records_to_create: Sequence[models.Model],
+        is_auto_increment: bool = True,
+    ) -> None:
         data = self.model_to_io(records_to_create, is_auto_increment)
         self.cursor.copy_expert(self.base_sql, data)
         table_name = self.meta.db_table
