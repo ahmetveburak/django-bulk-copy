@@ -19,7 +19,6 @@
   <img alt="Mypy" src="https://img.shields.io/badge/mypy-checked-blue"/>
   <img alt="isort" src="https://img.shields.io/badge/isort-checked-green"/>
   <img alt="bandit" src="https://img.shields.io/badge/security-bandit-yellow"/>
-   <img alt="bandit" src="https://img.shields.io/badge/security-bandit-yellow"/>
 </p>
 
 **Create your mass data in a faster way with the** `COPY` **command**.
