@@ -34,7 +34,7 @@ documentation = "https://github.com/ahmetveburak/django-bulk-copy/blob/main/READ
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-django = "^4.1.5"
+django = "^4.1.7"
 psycopg2 = "^2.9.5"
 
 [tool.poetry.group.dev.dependencies]
@@ -61,12 +61,14 @@ tests = ["B201", "B301"]
 
 
 
+
 [tool.poetry.group.test]
 optional = true
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.2.1"
 tox = "^4.3.2"
+
 
 [tool.poetry.group.docs]
 optional = true
