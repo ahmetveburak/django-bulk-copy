@@ -1,1 +1,3 @@
-from .bulk_copy import BulkCopy  # noqa
+from .manager import BulkCopyManager
+
+__all__ = ["BulkCopyManager"]
