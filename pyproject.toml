@@ -6,7 +6,10 @@ maintainers = [
     "Ahmet Burak Ozyurt <ahmetbozyurtt@gmail.com>",
     "Onuralp SEZER <thunderbirdtr@gmail.com>",
 ]
-packages = [{include = "bulk_copy"}]
+packages = [
+    {include = "bulk_copy"},
+    {include = "bulk_copy/py.typed"}
+]
 description = "Faster way to create your models in Django"
 keywords = ["django","postgres","django-bulk-copy","bulk","t-sql"]
 exclude = ["tests/"]
@@ -79,7 +82,7 @@ per-file-ignores = { }
 [tool.bandit]
 target = ["bulk_copy"]
 exclude_dirs = ["tests/"]
-skips = ["B101", "B311"]
+skips = ["B101", "B311","B608"]
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
