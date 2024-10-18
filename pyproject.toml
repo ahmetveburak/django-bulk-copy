@@ -34,6 +34,7 @@ documentation = "https://github.com/ahmetveburak/django-bulk-copy/blob/main/READ
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
 django = ">=3"
+psycopg2 = { version = "^2.9", optional = true }
 
 [tool.poetry.extras]
 postgres = ["psycopg2"]

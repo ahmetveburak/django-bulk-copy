@@ -1,5 +1,6 @@
 import csv
 import json
+import sys
 import uuid
 from io import StringIO
 from itertools import count
@@ -47,7 +48,9 @@ class PostgresCopy(BaseCopyWrapper):
 
     def _build_sql_stream(self, objs: Sequence[models.Model]) -> StringIO:
         csv_stream = StringIO()
-        csv_writer = csv.writer(csv_stream, delimiter=",", lineterminator="\n")
+
+        quoting = csv.QUOTE_STRINGS if sys.version_info >= (3, 12) else csv.QUOTE_MINIMAL  # type: ignore
+        csv_writer = csv.writer(csv_stream, quoting=quoting)
 
         for obj in objs:
             obj_dict = obj.__dict__.copy()
