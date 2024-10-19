@@ -13,12 +13,11 @@
   <img alt="bandit" src="https://img.shields.io/badge/security-bandit-yellow"/>
 </p>
 
-**⚠️ Only supports PostgreSQL**
-
 ## Install 🛠️
 
+**⚠️ It only supports PostgreSQL for now.**
 ```
-pip install django-bulk-copy
+pip install 'django-bulk-copy[postgres]'
 ```
 
 ## Usage 🚀
