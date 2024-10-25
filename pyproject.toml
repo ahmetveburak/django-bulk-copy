@@ -49,6 +49,7 @@ django-stubs = {extras = ["compatible-mypy"], version = "^5.1.0"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=bulk_copy --cov-report=term-missing"
+DJANGO_SETTINGS_MODULE = "tests.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 
 [tool.coverage.report]

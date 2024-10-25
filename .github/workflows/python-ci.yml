@@ -31,11 +31,7 @@ jobs:
         run: poetry check
 
       - name: 📜 Migrations
-        env:
-          DJANGO_SETTINGS_MODULE: tests.settings
         run: python manage.py migrate
 
       - name: 🧪 Run tests
-        env:
-          DJANGO_SETTINGS_MODULE: tests.settings
         run: pytest ./tests --cov=bulk_copy --cov-report=term-missing
