@@ -33,9 +33,11 @@ documentation = "https://github.com/ahmetveburak/django-bulk-copy/blob/main/READ
 python = ">=3.10,<4.0"
 django = ">=3"
 psycopg2-binary = {version = "^2.9.10", optional = true}
+psycopg2 = {version = "^2.9.10", optional = true}
 
 [tool.poetry.extras]
-postgres = ["psycopg2-binary"]
+postgres-binary = ["psycopg2-binary"]
+postgres = ["psycopg2"]
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11"
@@ -48,6 +50,7 @@ pytest-mock = "^3.14.0"
 django-stubs = {extras = ["compatible-mypy"], version = "^5.1.0"}
 
 [tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE="tests.settings"
 addopts = "--cov=bulk_copy --cov-report=term-missing"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 
