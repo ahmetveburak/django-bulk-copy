@@ -27,6 +27,7 @@ repos:
     -   id: bandit
         args: ["-c", "pyproject.toml"]
         additional_dependencies: ["bandit[toml]"]
+
 -   repo: https://github.com/PyCQA/autoflake
     rev: v2.0.0
     hooks:
@@ -36,6 +37,8 @@ repos:
     rev: 'v1.13.0'
     hooks:
     -   id: mypy
+        additional_dependencies: ["django-stubs[compatible-mypy]","psycopg2-binary"]
+
 
 ci:
     autofix_commit_msg: fix(pre-commit):🎨 Auto format from pre-commit.com hooks
