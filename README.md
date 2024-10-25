@@ -1,16 +1,8 @@
 # Django Bulk Copy 🚀
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ahmetveburak/django-bulk-copy/main.svg)](https://results.pre-commit.ci/latest/github/ahmetveburak/django-bulk-copy/main)
-![GitHub contributors](https://img.shields.io/github/contributors/ahmetveburak/django-bulk-copy)
-
 
 ![PyPI](https://img.shields.io/pypi/v/django-bulk-copy)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-bulk-copy)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/django-bulk-copy?color=red)
-![PyPI - Format](https://img.shields.io/pypi/format/django-bulk-copy)
-![PyPI - Status](https://img.shields.io/pypi/status/django-bulk-copy?color=orange)
-![PyPI - Implementation](https://img.shields.io/pypi/implementation/django-bulk-copy)
-![PyPI - Wheel](https://img.shields.io/pypi/wheel/django-bulk-copy)
+![Python](https://img.shields.io/badge/Support-Version%20%E2%89%A5%203.9-brightgreen)
 
 
 <p>
@@ -21,33 +13,32 @@
   <img alt="bandit" src="https://img.shields.io/badge/security-bandit-yellow"/>
 </p>
 
-**Create your mass data in a faster way with the** `COPY` **command**.
-
-**⚠️ Currently it supports only the Postgresql database. ⚠️**
-
 ## Install 🛠️
 
+**⚠️ It only supports PostgreSQL for now.**
 ```
-pip install django-bulk-copy
+pip install 'django-bulk-copy[postgres]'
 ```
 
 ## Usage 🚀
 
 ```python
-class TestModel(models.Model):
+# models.py
+from bulk_copy import BulkCopyManager
+from django.db import models
+
+class DummyModel(models.Model):
     integer_field = models.IntegerField(null=True)
     char_field = models.CharField(max_length=32, null=True)
     boolean_field = models.BooleanField(default=False)
     datetime_field = models.DateTimeField(null=True)
     json_field = models.JSONField(null=True)
-```
 
+    objects = BulkCopyManager()
 
-```python
-from bulk_copy import BulkCopy
-
+# Usage
 objects = [
-    TestModel(
+    DummyModel(
         integer_field=i,
         char_field=str(i),
         boolean_field=bool(i % 2),
@@ -57,19 +48,19 @@ objects = [
     for i in range(1000)
 ]
 
-BulkCopy(objects)
+TestModel.objects.bulk_copy(objects)
 ```
 
-BulkCopy only uses the initial time of the transaction if your model has a date/datetime field with `auto_now=True`.
+> If your model has a date/datetime field with `auto_now=True`, `bulk_copy` will use the transaction's initial time instead of the object's creation.
 
 ### Benchmark 📊
 
-| Object Count | `bulk_create` | `BulkCopy` |
-| ------------ | ------------- | ---------- |
-| 1.000        | 0.06          | 0.05       |
-| 10.000       | 0.34          | 0.08       |
-| 100.000      | 3.96          | 0.80       |
-| 1.000.000    | 38.96         | 7.57       |
+| Object Count | `bulk_create` | `bulk_copy` |
+| ------------ | ------------- |-------------|
+| 1.000        | 0.06          | 0.05        |
+| 10.000       | 0.34          | 0.08        |
+| 100.000      | 3.96          | 0.80        |
+| 1.000.000    | 38.96         | 7.57        |
 
 ### Additional Note 📝
 If you need to create your models from a csv file, [django-postgres-copy](https://palewi.re/docs/django-postgres-copy/) could be a better alternative.
