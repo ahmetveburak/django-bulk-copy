@@ -1,38 +1,32 @@
 import pytest
-from django.utils.crypto import get_random_string
 
-from tests.bulk_test.models import Ahmet, Burak
-from tests.bulk_test.tests.utils import create_ahmet
+from ..models import Ahmet, Burak
 
 
 @pytest.mark.django_db
-def test_bulk_copy_count():
-    number_of_objects = 10
-    objects = [create_ahmet() for _ in range(number_of_objects)]
-    objects.extend([create_ahmet(include_defaults=True) for _ in range(number_of_objects)])
+def test_bulk_copy_count(ahmet_factory):
+    """Verify bulk_copy inserts correct number of objects."""
+    objects = [ahmet_factory() for _ in range(10)]
+    objects.extend([ahmet_factory(is_active=False) for _ in range(10)])
     Ahmet.objects.bulk_copy(objects)
 
-    assert number_of_objects * 2 == Ahmet.objects.count()
+    assert Ahmet.objects.count() == 20
 
 
 @pytest.mark.django_db
-def test_bulk_copy_uuid():
-    number_of_objects = 10
-    objects = [
-        Burak(
-            event=get_random_string(100),
-            data={"knock": "knock"},
-            is_active=bool(i % 3),
-        )
-        for i in range(number_of_objects)
-    ]
+def test_bulk_copy_uuid(burak_factory):
+    """Verify bulk_copy works with UUID primary keys."""
+    objects = [burak_factory(is_active=bool(i % 3)) for i in range(10)]
     Burak.objects.bulk_copy(objects)
 
-    assert number_of_objects == Burak.objects.count()
+    assert Burak.objects.count() == 10
 
 
-def test_unsupported_database(mocker):
-    mocker.patch("bulk_copy.manager.settings.DATABASES", {"default": {"ENGINE": "django.db.backends.sqlite3"}})
+def test_unsupported_database(mocker, ahmet_factory):
+    """Verify NotImplementedError for unsupported database vendors."""
+    mock_connection = mocker.MagicMock()
+    mock_connection.vendor = "sqlite"
+    mocker.patch("bulk_copy.manager.connections", {"default": mock_connection})
 
-    with pytest.raises(NotImplementedError, match="Database engine not supported."):
-        Ahmet.objects.bulk_copy([])
+    with pytest.raises(NotImplementedError, match="Database vendor 'sqlite' is not supported."):
+        Ahmet.objects.bulk_copy([ahmet_factory()])

@@ -6,7 +6,7 @@ from operator import itemgetter
 from typing import Any, Generator, NamedTuple, Sequence
 from uuid import UUID
 
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from ..utils import uuid_generator
@@ -55,9 +55,13 @@ class BaseCopyWrapper(ABC):
         return count(max_pk + 1)
 
     def insert_objects(self, objs: Sequence[models.Model]) -> None:
-        self._set_sequence_generator()
-        self._insert_objects(objs)
-        self._update_table_sequence()
+        if not objs:
+            return
+
+        with transaction.atomic(using=self._using, savepoint=False):
+            self._set_sequence_generator()
+            self._insert_objects(objs)
+            self._update_table_sequence()
 
     def _set_sequence_generator(self) -> None:
         self._sequence = self._get_sequence_generator()

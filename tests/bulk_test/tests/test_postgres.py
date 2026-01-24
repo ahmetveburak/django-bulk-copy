@@ -1,33 +1,28 @@
 import csv
 import sys
-from io import StringIO
 
 import pytest
-import pytest_mock
-from django.db import connection, connections
+from django.db import connection
 from django.utils import timezone
 
+from bulk_copy.engines.postgresql import PostgresCopy
+
 from ..models import Ahmet
-from .utils import create_ahmet
 
 
 @pytest.mark.django_db
-def test_is_called():
-    with connection.cursor() as cursor:
-        cursor.execute(f"SELECT pg_get_serial_sequence('{Ahmet._meta.db_table}', '{Ahmet._meta.pk.attname}');")
-        sequence_table = cursor.fetchone()[0]
-
-        cursor.execute(f"ALTER SEQUENCE {sequence_table} RESTART WITH 1;")
+def test_is_called(ahmet_factory, reset_ahmet_sequence):
+    """Verify sequence is_called flag is updated after bulk_copy."""
+    sequence_table = reset_ahmet_sequence
 
     with connection.cursor() as cursor:
         cursor.execute(f"SELECT last_value, is_called FROM {sequence_table};")
         sequence, is_called = cursor.fetchone()
         assert (sequence, is_called) == (1, False)
 
-    # Create an object to invoke the sequence
-    Ahmet.objects.bulk_copy([create_ahmet()])
-    # `is_called` should be true
-    Ahmet.objects.bulk_copy([create_ahmet()])
+    # Create objects to invoke the sequence
+    Ahmet.objects.bulk_copy([ahmet_factory()])
+    Ahmet.objects.bulk_copy([ahmet_factory()])
 
     with connection.cursor() as cursor:
         cursor.execute(f"SELECT last_value, is_called FROM {sequence_table};")
@@ -36,46 +31,41 @@ def test_is_called():
 
 
 @pytest.mark.django_db
-def test_csv_quoting_rule(mocker: pytest_mock.MockFixture):
+def test_csv_quoting_rule(mocker, ahmet_factory):
+    """Verify correct CSV quoting based on Python version."""
+    test_obj = ahmet_factory()
+
     mocker.patch("bulk_copy.engines.postgresql.sys.version_info", (3, 11))
     mock_csv_writer = mocker.patch("bulk_copy.engines.postgresql.csv.writer")
-    Ahmet.objects.bulk_copy([])
+    Ahmet.objects.bulk_copy([test_obj])
     mock_csv_writer.assert_called_once_with(mocker.ANY, quoting=csv.QUOTE_MINIMAL)
 
     mock_quote_strings = mocker.patch("bulk_copy.engines.postgresql.csv.QUOTE_STRINGS", create=True)
     mocker.patch("bulk_copy.engines.postgresql.sys.version_info", (3, 12))
-    Ahmet.objects.bulk_copy([])
+    Ahmet.objects.bulk_copy([test_obj])
     mock_csv_writer.assert_called_with(mocker.ANY, quoting=mock_quote_strings)
 
 
-#
 @pytest.mark.django_db
-def test_copy_from_stream(mocker: pytest_mock.MockFixture):
-    mock_cursor = mocker.MagicMock()
-    mock_cursor.fetchone.side_effect = [
-        ("mock_sequence_table",),  # First fetchone call
-        (1, False),  # Second fetchone call
-    ]
-    mock_connection = mocker.MagicMock()
-    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
-    connections["default"] = mock_connection
-
+def test_copy_from_stream(mocker):
+    """Verify CSV stream format for COPY command."""
     _tz_now = timezone.now()
     mocker.patch.object(timezone, "now", return_value=_tz_now)
 
+    wrapper = PostgresCopy(model=Ahmet, using="default")
+    wrapper._set_sequence_generator()  # Initialize the sequence
+
     temp_ahmet = Ahmet(
-        version=1, event="", event_date=_tz_now, rate=1.1, data={"key": "value"}, is_active=True, created_at=_tz_now
+        version=1, event="", event_date=_tz_now, rate=1.1,
+        data={"key": "value"}, is_active=True, created_at=_tz_now
     )
 
-    expected_result = f'1,,{_tz_now},1.1,"{{""key"": ""value""}}",True,{_tz_now}\r\n'
-    # After 3.12, empty strings are quoted if quoting is set to QUOTE_STRINGS
-    expected_result_312 = f'1,"",{_tz_now},1.1,"{{""key"": ""value""}}",True,{_tz_now}\r\n'
+    # Directly test the stream building
+    stream = wrapper._build_sql_stream([temp_ahmet])
+    csv_string = stream.getvalue()
 
-    Ahmet.objects.bulk_copy([temp_ahmet])
-    stream: StringIO = mock_cursor.copy_expert.call_args[0][1]
-    csv_string = stream.read()
+    expected_311 = f'1,,{_tz_now},1.1,"{{""key"": ""value""}}",True,{_tz_now}\r\n'
+    expected_312 = f'1,"",{_tz_now},1.1,"{{""key"": ""value""}}",True,{_tz_now}\r\n'
 
-    if sys.version_info >= (3, 12):
-        assert csv_string == expected_result_312
-    else:
-        assert csv_string == expected_result
+    expected = expected_312 if sys.version_info >= (3, 12) else expected_311
+    assert csv_string == expected

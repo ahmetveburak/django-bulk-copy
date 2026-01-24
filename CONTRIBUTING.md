@@ -1,148 +1,201 @@
-# Contributing guidelines
+# Contributing Guidelines
 
-## Before contributing
+## Before Contributing
 
-Welcome to [django-bulk-copy](https://github.com/ahmetveburak/django-bulk-copy)! Before sending your pull requests, make sure that you __read the whole guidelines__. If you have any doubt on the contributing guide, please feel free to [state it clearly in an issue](https://github.com/ahmetveburak/django-bulk-copy/issues/new)
+Welcome to [django-bulk-copy](https://github.com/ahmetveburak/django-bulk-copy)! Before sending your pull requests, make sure that you **read the whole guidelines**. If you have any doubt on the contributing guide, please feel free to [state it clearly in an issue](https://github.com/ahmetveburak/django-bulk-copy/issues/new).
 
 ## Contributing
 
 ### Contributor
 
-We are very happy that you are considering implementing algorithms and data structures for others! This repository is referenced and used by learners from all over the globe. Being one of our contributors, you agree and confirm that:
+We are very happy that you are considering contributing to this project! Being one of our contributors, you agree and confirm that:
 
 - You did your work - no plagiarism allowed
   - Any plagiarized work will not be merged.
 - Your work will be distributed under [MIT License](LICENSE.md) once your pull request is merged
-- Your submitted work fulfils or mostly fulfils our styles and standards
+- Your submitted work fulfills or mostly fulfills our styles and standards
 
-__New implementation__ is welcome! For example, new solutions for a problem, different representations for a graph data structure or algorithm designs with different complexity but __identical implementation__ of an existing implementation is not allowed. Please check whether the solution is already implemented or not before submitting your pull request.
+**New implementations** are welcome! For example, new database backends, additional field type support, or performance improvements.
 
-__Improving comments__ and __writing proper tests__ are also highly welcome.
+**Improving documentation** and **writing proper tests** are also highly welcome.
 
 ### Contribution
 
-We appreciate any contribution, from fixing a grammar mistake in a comment to implementing complex algorithms. Please read this section if you are contributing your work.
+We appreciate any contribution, from fixing a grammar mistake in a comment to implementing new features. Please read this section if you are contributing your work.
 
-Your contribution will be tested by our [automated testing on GitHub Actions](https://github.com/ahmetveburak/django-bulk-copy/actions) to save time and mental energy.  After you have submitted your pull request, you should see the GitHub Actions tests start to run at the bottom of your submission page.  If those tests fail, then click on the ___details___ button try to read through the GitHub Actions output to understand the failure.  If you do not understand, please leave a comment on your submission page and a community member will try to help.
+Your contribution will be tested by our [automated testing on GitHub Actions](https://github.com/ahmetveburak/django-bulk-copy/actions). After you have submitted your pull request, you should see the GitHub Actions tests start to run at the bottom of your submission page. If those tests fail, click on the **details** button and try to read through the GitHub Actions output to understand the failure.
 
-Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the commit message of pull requests that resolve open issues. GitHub will use this tag to auto-close the issue when the PR is merged.
+Please help us keep our issue list small by adding `fixes: #$ISSUE_NO` to the commit message of pull requests that resolve open issues. GitHub will use this tag to auto-close the issue when the PR is merged.
 
+## Development Setup
 
-#### Pre-commit plugin
-Use [pre-commit](https://pre-commit.com/#installation) to automatically format your code to match our coding style:
+### Prerequisites
+
+- Python 3.10 or higher
+- PostgreSQL (for running tests)
+- uv (for dependency management)
+
+### Setup
 
 ```bash
-python3 -m pip install pre-commit  # only required the first time
+# Clone the repository
+git clone https://github.com/ahmetveburak/django-bulk-copy.git
+cd django-bulk-copy
+
+# Install dependencies with uv
+uv sync --all-extras
+
+# Or use pip
+pip install -e ".[postgres-binary]"
+
+# Start PostgreSQL (using Docker)
+docker run -d --name bulk_copy \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=postgres \
+  -p 5432:5432 postgres
+
+# Run migrations
+DJANGO_SETTINGS_MODULE=tests.settings python manage.py migrate
+
+# Run tests
+pytest tests/ --cov=bulk_copy
+```
+
+### Pre-commit Hooks
+
+Use [pre-commit](https://pre-commit.com/#installation) to automatically format and check your code:
+
+```bash
+pip install pre-commit  # only required the first time
 pre-commit install
 ```
-That's it! The plugin will run every time you commit any changes. If there are any errors found during the run, fix them and commit those changes. You can even run the plugin manually on all files:
+
+The plugin will run every time you commit changes. You can also run it manually:
 
 ```bash
 pre-commit run --all-files --show-diff-on-failure
 ```
 
-#### Coding Style
+## Coding Standards
 
-We want your work to be readable by others; therefore, we encourage you to note the following:
+### Python Version
 
-- Please write in Python 3.8. For instance:  `print()` is a function in Python 3 so `print "Hello"` will *not* work but `print("Hello")` will.
-- Please focus hard on the naming of functions, classes, and variables.  Help your reader by using __descriptive names__ that can help you to remove redundant comments.
-  - Single letter variable names are *old school* so please avoid them unless their life only spans a few lines.
-  - Expand acronyms because `gcd()` is hard to understand but `greatest_common_divisor()` is not.
-  - Please follow the [Python Naming Conventions](https://pep8.org/#prescriptive-naming-conventions) so variable_names and function_names should be lower_case, CONSTANTS in UPPERCASE, ClassNames should be CamelCase, etc.
+We support Python 3.10 and higher. Use modern Python features like:
+- Type hints with the `|` union syntax (e.g., `int | None`)
+- f-strings for string formatting
+- Walrus operator (`:=`) where appropriate
 
-- We encourage the use of Python [f-strings](https://realpython.com/python-f-strings/#f-strings-a-new-and-improved-way-to-format-strings-in-python) where they make the code easier to read.
+### Code Formatting
 
-- Please consider running [__psf/black__](https://github.com/python/black) on your Python file(s) before submitting your pull request.  This is not yet a requirement but it does make your code more readable and automatically aligns it with much of [PEP 8](https://www.python.org/dev/peps/pep-0008/). There are other code formatters (autopep8, yapf) but the __black__ formatter is now hosted by the Python Software Foundation. To use it,
+We use **Ruff** for linting and formatting. Run it before submitting:
 
-  ```bash
-  python3 -m pip install black  # only required the first time
-  black .
-  ```
+```bash
+# Check for issues
+ruff check bulk_copy tests
 
-- All submissions will need to pass the test `flake8 . --ignore=E203,W503 --max-line-length=88` before they will be accepted so if possible, try this test locally on your Python file(s) before submitting your pull request.
+# Auto-fix issues
+ruff check --fix bulk_copy tests
+```
 
-  ```bash
-  python3 -m pip install flake8  # only required the first time
-  flake8 . --ignore=E203,W503  --max-line-length=88 --show-source
-  ```
+### Type Checking
 
-- Original code submission require docstrings or comments to describe your work.
+We use **mypy** for static type checking:
 
-- More on docstrings and comments:
+```bash
+mypy bulk_copy
+```
 
-  If you used a Wikipedia article or some other source material to create your algorithm, please add the URL in a docstring or comment to help your reader.
+All public functions should have type hints:
 
-  The following are considered to be bad and may be requested to be improved:
+```python
+def bulk_copy(self, objs: Sequence[models.Model], batch_size: int | None = None) -> None:
+    ...
+```
 
-  ```python
-  x = x + 2	# increased by 2
-  ```
+### Security
 
-  This is too trivial. Comments are expected to be explanatory. For comments, you can write them above, on or below a line of code, as long as you are consistent within the same piece of code.
+We use **Bandit** to scan for security issues:
 
-  We encourage you to put docstrings inside your functions but please pay attention to the indentation of docstrings. The following is a good example:
+```bash
+bandit -c pyproject.toml -r bulk_copy
+```
 
-  ```python
-  def sum_ab(a, b):
-      """
-      Return the sum of two integers a and b.
-      """
-      return a + b
-  ```
+**Important security guidelines:**
+- Always use `connection.ops.quote_name()` for SQL identifiers
+- Always use parameterized queries for values
+- Never use f-strings with user input in SQL queries
 
-- Write tests (especially [__doctests__](https://docs.python.org/3/library/doctest.html)) to illustrate and verify your work.  We highly encourage the use of _doctests on all functions_.
+### Testing
 
-  ```python
-  def sum_ab(a, b):
-      """
-      Return the sum of two integers a and b
-      >>> sum_ab(2, 2)
-      4
-      >>> sum_ab(-2, 3)
-      1
-      >>> sum_ab(4.9, 5.1)
-      10.0
-      """
-      return a + b
-  ```
+Write tests for all new functionality:
 
-  These doctests will be run by pytest as part of our automated testing so please try to run your doctests locally and make sure that they are found and pass:
+```bash
+# Run all tests with coverage
+pytest tests/ --cov=bulk_copy --cov-report=term-missing
 
-  ```bash
-  python3 -m doctest -v my_submission.py
-  ```
+# Run specific test file
+pytest tests/bulk_test/tests/test_manager.py
 
-  The use of the Python builtin `input()` function is __not__ encouraged:
+# Run with verbose output
+pytest tests/ -v
+```
 
-  ```python
-  input('Enter your input:')
-  # Or even worse...
-  input = eval(input("Enter your input: "))
-  ```
+Test files should be placed in `tests/bulk_test/tests/` and named `test_*.py`.
 
-  However, if your code uses `input()` then we encourage you to gracefully deal with leading and trailing whitespace in user input by adding `.strip()` as in:
+### Naming Conventions
 
-  ```python
-  starting_value = int(input("Please enter a starting value: ").strip())
-  ```
+Follow [PEP 8](https://pep8.org/#prescriptive-naming-conventions):
+- `variable_names` and `function_names` should be `lower_case`
+- `CONSTANTS` should be `UPPERCASE`
+- `ClassNames` should be `CamelCase`
 
-  The use of [Python type hints](https://docs.python.org/3/library/typing.html) is encouraged for function parameters and return values.  Our automated testing will run [mypy](http://mypy-lang.org) so run that locally before making your submission.
+Use descriptive names:
+```python
+# Good
+def get_sequence_generator() -> Generator:
+    ...
 
-  ```python
-  def sum_ab(a: int, b: int) -> int:
-      return a + b
-  ```
+# Avoid
+def get_seq() -> Generator:
+    ...
+```
 
-  Instructions on how to install mypy can be found [here](https://github.com/python/mypy). Please use the command `mypy --ignore-missing-imports .` to test all files or `mypy --ignore-missing-imports path/to/file.py` to test a specific file.
+### Documentation
 
-- [__List comprehensions and generators__](https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions) are preferred over the use of `lambda`, `map`, `filter`, `reduce` but the important thing is to demonstrate the power of Python in code that is easy to read and maintain.
+- Add docstrings to public methods
+- Include type information in docstrings if complex
+- Document any side effects or important caveats
 
-- Avoid importing external libraries for basic algorithms. Only use those libraries for complicated algorithms.
-- If you need a third-party module that is not in the file __requirements.txt__, please add it to that file as part of your submission.
+```python
+def bulk_copy(self, objs: Sequence[models.Model], batch_size: int | None = None) -> None:
+    """
+    Insert objects using PostgreSQL COPY command for better performance.
 
-- Most importantly,
-  - __Be consistent in the use of these guidelines when submitting.__
-  - Happy coding!
+    Args:
+        objs: Sequence of model instances to insert.
+        batch_size: Optional batch size for processing large datasets.
+
+    Note:
+        Django signals (pre_save, post_save) are NOT fired.
+    """
+```
+
+## Pull Request Process
+
+1. Fork the repository and create a feature branch
+2. Make your changes with appropriate tests
+3. Ensure all tests pass: `pytest tests/`
+4. Ensure code quality checks pass:
+   - `ruff check bulk_copy tests`
+   - `mypy bulk_copy`
+   - `bandit -c pyproject.toml -r bulk_copy`
+5. Submit a pull request with a clear description of changes
+
+## Questions?
+
+Feel free to open an issue if you have questions about contributing.
+
+---
 
 Writer [@onuralpszr](https://github.com/onuralpszr), Dec 2023.
+Updated Jan 2026.

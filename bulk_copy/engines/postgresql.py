@@ -17,14 +17,18 @@ class PostgresCopy(BaseCopyWrapper):
         if isinstance(self._model._meta.pk, models.UUIDField):
             return uuid_generator()
 
-        with connections[self._using].cursor() as cursor:
-            operation = "select pg_get_serial_sequence(%(table_name)s, %(pk_column)s);"
+        connection = connections[self._using]
+        with connection.cursor() as cursor:
             cursor.execute(
-                operation, {"table_name": self._model._meta.db_table, "pk_column": self._model._meta.pk.attname}
+                "SELECT pg_get_serial_sequence(%(table_name)s, %(pk_column)s);",
+                {"table_name": self._model._meta.db_table, "pk_column": self._model._meta.pk.attname},
             )
-            _sequence_table = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            if result is None or result[0] is None:
+                raise ValueError(f"No sequence found for table '{self._model._meta.db_table}'")
+            _sequence_table = result[0]
 
-            cursor.execute(f"select last_value, is_called from {_sequence_table}")  # nosec: B608 # no user input
+            cursor.execute(f"SELECT last_value, is_called FROM {_sequence_table}")
             _sequence, is_called = cursor.fetchone()
             if is_called:
                 _sequence += 1
@@ -35,16 +39,21 @@ class PostgresCopy(BaseCopyWrapper):
         if isinstance(self._model._meta.pk, models.UUIDField):
             return
 
-        with connections[self._using].cursor() as cursor:
-            db_table = self._model._meta.db_table
-            pk_column = self._model._meta.pk.attname
-            operation = f"""
-            SELECT
-                setval(pg_get_serial_sequence('{db_table}','{pk_column}'),
-                    max("{pk_column}"), max("{pk_column}") IS NOT null)
-            FROM {db_table};
-            """
-            cursor.execute(operation)
+        connection = connections[self._using]
+        quoted_table = connection.ops.quote_name(self._model._meta.db_table)
+        quoted_pk = connection.ops.quote_name(self._model._meta.pk.attname)
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT setval(
+                    pg_get_serial_sequence(%(table)s, %(pk)s),
+                    COALESCE(max({quoted_pk}), 1),
+                    max({quoted_pk}) IS NOT NULL
+                ) FROM {quoted_table};
+                """,
+                {"table": self._model._meta.db_table, "pk": self._model._meta.pk.attname},
+            )
 
     def _build_sql_stream(self, objs: Sequence[models.Model]) -> StringIO:
         csv_stream = StringIO()
@@ -66,9 +75,13 @@ class PostgresCopy(BaseCopyWrapper):
         csv_stream.seek(0)
         return csv_stream
 
-    def _build_copy_from_template(self):
-        copy_from_template = """
-        COPY "%(table_name)s" (%(field_names)s)
+    def _build_copy_from_template(self) -> str:
+        connection = connections[self._using]
+        quoted_table = connection.ops.quote_name(self._model._meta.db_table)
+        quoted_fields = ",".join(connection.ops.quote_name(f) for f in self._fields.field_names)
+
+        return f"""
+        COPY {quoted_table} ({quoted_fields})
         FROM STDIN
         WITH (
             FORMAT CSV,
@@ -76,10 +89,6 @@ class PostgresCopy(BaseCopyWrapper):
             NULL ''
         );
         """
-        return copy_from_template % {
-            "table_name": self._model._meta.db_table,
-            "field_names": ",".join(self._fields.field_names),
-        }
 
     def _insert_objects(self, objs: Sequence[models.Model]) -> None:
         _sql = self._build_sql_stream(objs)

@@ -9,7 +9,7 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2.6.0
+      - uses: actions/checkout@v4
 
       - name: 🐍 Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -24,11 +24,17 @@ jobs:
 
       - name: 📦 Install the base dependencies
         run: |
-             uv pip install poetry psycopg2-binary pytest coverage pytest-cov pytest_mock pytest-django --system
+             uv pip install psycopg2-binary pytest coverage pytest-cov pytest_mock pytest-django ruff mypy bandit django-stubs --system
              uv pip install -e . --system
 
-      - name: ✅ Check the correctness of the project config
-        run: poetry check
+      - name: 🔍 Run Ruff linter
+        run: ruff check bulk_copy tests
+
+      - name: 🔎 Run mypy type checker
+        run: mypy bulk_copy
+
+      - name: 🔒 Run Bandit security scanner
+        run: bandit -c pyproject.toml -r bulk_copy
 
       - name: 📜 Migrations
         env:
@@ -38,4 +44,4 @@ jobs:
       - name: 🧪 Run tests
         env:
           DJANGO_SETTINGS_MODULE: tests.settings
-        run: pytest ./tests --cov=bulk_copy --cov-report=term-missing
+        run: pytest ./tests --cov=bulk_copy --cov-report=term-missing --cov-fail-under=80

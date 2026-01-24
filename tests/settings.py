@@ -1,7 +1,7 @@
 SECRET_KEY = "secret"
 
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list[str] = []
 
 
 INSTALLED_APPS = [

@@ -3,29 +3,39 @@ from typing import Generator, Sequence
 from uuid import UUID
 
 import pytest
-import pytest_mock
 from django.db import models
 
 from bulk_copy.engines.base import BaseCopyWrapper
-from tests.bulk_test.models import Ahmet, Burak
+
+from ..models import Ahmet, Burak
 
 
 class DummyCopy(BaseCopyWrapper):
+    """Minimal implementation for testing BaseCopyWrapper."""
+
     def _update_table_sequence(self) -> None:
         pass
 
-    def _insert_objects(self, objs: Sequence[models.Model]) -> None:
+    def insert_objects(self, objs: Sequence[models.Model]) -> None:
         pass
 
 
 @pytest.mark.django_db
-def test_get_sequence_generator(mocker: pytest_mock.MockFixture):
-    copy_wrapper = DummyCopy(model=Ahmet, using="default")
-    sequence = copy_wrapper._get_sequence_generator()
-    assert isinstance(sequence, count)
-    assert isinstance(next(sequence), int)
+class TestSequenceGenerator:
+    """Tests for _get_sequence_generator method."""
 
-    copy_wrapper = DummyCopy(model=Burak, using="default")
-    sequence = copy_wrapper._get_sequence_generator()
-    assert isinstance(sequence, Generator)
-    assert isinstance(next(sequence), UUID)
+    def test_integer_pk_returns_count(self):
+        """Verify integer PK model returns count iterator."""
+        wrapper = DummyCopy(model=Ahmet, using="default")
+        sequence = wrapper._get_sequence_generator()
+
+        assert isinstance(sequence, count)
+        assert isinstance(next(sequence), int)
+
+    def test_uuid_pk_returns_uuid_generator(self):
+        """Verify UUID PK model returns UUID generator."""
+        wrapper = DummyCopy(model=Burak, using="default")
+        sequence = wrapper._get_sequence_generator()
+
+        assert isinstance(sequence, Generator)
+        assert isinstance(next(sequence), UUID)
