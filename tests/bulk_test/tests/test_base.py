@@ -16,7 +16,7 @@ class DummyCopy(BaseCopyWrapper):
     def _update_table_sequence(self) -> None:
         pass
 
-    def insert_objects(self, objs: Sequence[models.Model]) -> None:
+    def _insert_objects(self, objs: Sequence[models.Model]) -> None:
         pass
 
 

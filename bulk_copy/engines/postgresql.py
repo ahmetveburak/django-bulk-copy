@@ -8,6 +8,7 @@ from typing import Generator, Sequence
 
 from django.db import connections, models
 
+from ..compat import copy_from_stream
 from ..utils import uuid_generator
 from .base import BaseCopyWrapper
 
@@ -95,4 +96,4 @@ class PostgresCopy(BaseCopyWrapper):
         _copy_from_sql = self._build_copy_from_template()
 
         with connections[self._using].cursor() as cursor:
-            cursor.copy_expert(_copy_from_sql, _sql)
+            copy_from_stream(cursor, _copy_from_sql, _sql)

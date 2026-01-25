@@ -4,7 +4,11 @@ from decimal import Decimal
 
 import pytest
 from django.db import IntegrityError, connection, transaction
-from psycopg2.errors import UniqueViolation
+
+try:
+    from psycopg.errors import UniqueViolation
+except ImportError:
+    from psycopg2.errors import UniqueViolation
 
 from ..models import Ahmet
 

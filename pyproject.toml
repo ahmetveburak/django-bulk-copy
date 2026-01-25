@@ -33,6 +33,8 @@ dependencies = ["django>=3"]
 [project.optional-dependencies]
 postgres-binary = ["psycopg2-binary>=2.9.10,<3"]
 postgres = ["psycopg2>=2.9.10,<3"]
+psycopg3-binary = ["psycopg[binary]>=3.1,<4"]
+psycopg3 = ["psycopg>=3.1,<4"]
 
 [project.urls]
 homepage = "https://github.com/ahmetveburak/django-bulk-copy"
